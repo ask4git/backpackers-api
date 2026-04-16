@@ -1,21 +1,15 @@
-from urllib.parse import urlencode
-
-import httpx
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token as google_id_token
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.database import get_db
 from app.core.security import create_access_token, verify_password
 from app.crud.user import create_user, get_or_create_google_user, get_user_by_email
-from app.schemas.user import TokenResponse, UserLogin, UserRegister, UserResponse
+from app.schemas.user import GoogleVerifyRequest, TokenResponse, UserLogin, UserRegister, UserResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-
-GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
-GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
-GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo"
 
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
@@ -38,46 +32,19 @@ async def login(data: UserLogin, db: AsyncSession = Depends(get_db)):
     return TokenResponse(access_token=token, user=UserResponse.model_validate(user))
 
 
-@router.get("/google")
-async def google_login():
-    params = urlencode({
-        "client_id": settings.GOOGLE_CLIENT_ID,
-        "redirect_uri": settings.GOOGLE_REDIRECT_URI,
-        "response_type": "code",
-        "scope": "openid email profile",
-        "access_type": "offline",
-    })
-    return RedirectResponse(f"{GOOGLE_AUTH_URL}?{params}")
-
-
-@router.get("/google/callback", response_model=TokenResponse)
-async def google_callback(code: str, db: AsyncSession = Depends(get_db)):
-    async with httpx.AsyncClient() as client:
-        token_res = await client.post(GOOGLE_TOKEN_URL, data={
-            "code": code,
-            "client_id": settings.GOOGLE_CLIENT_ID,
-            "client_secret": settings.GOOGLE_CLIENT_SECRET,
-            "redirect_uri": settings.GOOGLE_REDIRECT_URI,
-            "grant_type": "authorization_code",
-        })
-
-    if token_res.status_code != 200:
-        raise HTTPException(status_code=400, detail="Google 인증에 실패했습니다.")
-
-    access_token = token_res.json().get("access_token")
-
-    async with httpx.AsyncClient() as client:
-        userinfo_res = await client.get(
-            GOOGLE_USERINFO_URL,
-            headers={"Authorization": f"Bearer {access_token}"},
+@router.post("/google/verify", response_model=TokenResponse)
+async def google_verify(body: GoogleVerifyRequest, db: AsyncSession = Depends(get_db)):
+    try:
+        idinfo = google_id_token.verify_oauth2_token(
+            body.id_token,
+            google_requests.Request(),
+            settings.GOOGLE_CLIENT_ID,
         )
+    except ValueError:
+        raise HTTPException(status_code=400, detail="유효하지 않은 Google 토큰입니다.")
 
-    if userinfo_res.status_code != 200:
-        raise HTTPException(status_code=400, detail="Google 사용자 정보를 가져올 수 없습니다.")
-
-    userinfo = userinfo_res.json()
-    email = userinfo.get("email")
-    name = userinfo.get("name") or email
+    email = idinfo.get("email")
+    name = idinfo.get("name") or email
 
     if not email:
         raise HTTPException(status_code=400, detail="Google 계정에서 이메일을 가져올 수 없습니다.")
