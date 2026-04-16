@@ -23,3 +23,14 @@ async def create_user(db: AsyncSession, email: str, password: str, name: str) ->
     await db.commit()
     await db.refresh(user)
     return user
+
+
+async def get_or_create_google_user(db: AsyncSession, email: str, name: str) -> User:
+    user = await get_user_by_email(db, email)
+    if user:
+        return user
+    user = User(email=email, hashed_password="", name=name)
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    return user
