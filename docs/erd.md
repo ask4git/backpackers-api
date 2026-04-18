@@ -5,67 +5,122 @@
 ```mermaid
 erDiagram
     users {
-        UUID    id              PK
-        String  email           "unique, indexed"
-        String  hashed_password
-        String  name
-        DateTime created_at
-        DateTime updated_at
+        UUID     id               PK "고유 식별자"
+        String   email            UK "이메일 (unique, indexed)"
+        String   hashed_password     "비밀번호 해시"
+        String   name                "이름"
+        DateTime created_at          "생성일시"
+        DateTime updated_at          "수정일시"
     }
 
     spots {
-        UUID    uid              PK
-        String  title            "indexed"
-        String  address          "nullable"
-        String  address_detail   "nullable"
-        String  region_province  "nullable, indexed"
-        String  region_city      "nullable, indexed"
-        String  postal_code      "nullable"
-        String  phone            "nullable"
-        String  description      "nullable"
-        String  tagline          "nullable"
-        Float   latitude         "nullable"
-        Float   longitude        "nullable"
-        Float   altitude         "nullable"
-        Integer unit_count       "nullable"
-        Boolean is_fee_required  "nullable"
-        Boolean is_pet_allowed   "nullable"
-        String  pet_policy       "nullable"
-        Boolean has_equipment_rental "nullable"
-        Array   themes           "nullable"
-        String  fire_pit_type    "nullable"
-        Array   amenities        "nullable"
-        Array   nearby_facilities "nullable"
-        String  camp_sight_type  "nullable"
-        DateTime created_at
-        DateTime updated_at
+        UUID     uid              PK "고유 식별자"
+        String   title               "스팟 이름 (indexed)"
+        String   address             "주소"
+        String   address_detail      "상세주소"
+        String   region_province     "도 (indexed)"
+        String   region_city         "시군구 (indexed)"
+        String   postal_code         "우편번호"
+        String   phone               "전화번호"
+        String   description         "설명"
+        String   tagline             "한줄소개"
+        Float    latitude            "위도"
+        Float    longitude           "경도"
+        Float    altitude            "고도"
+        Integer  unit_count          "야영동 개수"
+        Boolean  is_fee_required     "야영료 징수 여부"
+        Boolean  is_pet_allowed      "반려동물 출입 여부"
+        String   pet_policy          "반려동물 정책"
+        Boolean  has_equipment_rental "캠핑장비 대여 여부"
+        Array    themes              "테마환경"
+        String   fire_pit_type       "화로대 타입"
+        Array    amenities           "부대시설"
+        Array    nearby_facilities   "주변 이용 가능 시설"
+        String   camp_sight_type     "바닥 타입"
+        DateTime created_at          "생성일시"
+        DateTime updated_at          "수정일시"
     }
 
     spot_business_info {
-        UUID    uid                       PK
-        UUID    spot_uid                  FK "indexed"
-        String  business_reg_no           "nullable"
-        String  tourism_business_reg_no   "nullable"
-        String  business_type             "nullable"
-        String  operation_type            "nullable"
-        String  operating_agency          "nullable"
-        String  operating_status          "nullable, indexed"
-        Integer national_park_no          "nullable"
-        String  national_park_office_code "nullable"
-        String  national_park_serial_no   "nullable"
-        String  national_park_category_code "nullable"
-        Date    licensed_at               "nullable"
-        DateTime created_at
-        DateTime updated_at
+        UUID     uid                        PK "고유 식별자"
+        UUID     spot_uid                   FK "spots.uid (indexed)"
+        String   business_reg_no               "사업자번호"
+        String   tourism_business_reg_no       "관광사업자번호"
+        String   business_type                 "사업주체"
+        String   operation_type                "운영주체"
+        String   operating_agency              "운영기관"
+        String   operating_status              "운영상태 (indexed)"
+        Integer  national_park_no              "국립공원관리번호"
+        String   national_park_office_code     "공원사무소코드"
+        String   national_park_serial_no       "일련번호"
+        String   national_park_category_code   "분류코드"
+        Date     licensed_at                   "인허가일자"
+        DateTime created_at                    "생성일시"
+        DateTime updated_at                    "수정일시"
     }
 
     spots ||--|| spot_business_info : "business_info"
 ```
 
-## 테이블 설명
+---
 
-| 테이블 | 설명 |
-|---|---|
-| `users` | 회원 계정 (이메일/패스워드 인증) |
-| `spots` | 국립공원 등 공공 raw 데이터 기반 스팟 |
-| `spot_business_info` | spots의 사업자/인허가 정보 (1:1) |
+## users
+
+| 필드명 | 타입 | 설명 | 비고 |
+|---|---|---|---|
+| id | UUID | 고유 식별자 | PK |
+| email | String | 이메일 | unique, indexed |
+| hashed_password | String | 비밀번호 해시 | |
+| name | String | 이름 | |
+| created_at | DateTime | 생성일시 | |
+| updated_at | DateTime | 수정일시 | |
+
+## spots
+
+| 필드명 | 타입 | 설명 | 비고 |
+|---|---|---|---|
+| uid | UUID | 고유 식별자 | PK |
+| title | String | 스팟 이름 | indexed |
+| address | String | 주소 | nullable |
+| address_detail | String | 상세주소 | nullable |
+| region_province | String | 도 | nullable, indexed |
+| region_city | String | 시군구 | nullable, indexed |
+| postal_code | String | 우편번호 | nullable |
+| phone | String | 전화번호 | nullable |
+| description | String | 설명 | nullable |
+| tagline | String | 한줄소개 | nullable |
+| latitude | Float | 위도 | nullable |
+| longitude | Float | 경도 | nullable |
+| altitude | Float | 고도 | nullable |
+| unit_count | Integer | 야영동 개수 | nullable |
+| is_fee_required | Boolean | 야영료 징수 여부 | nullable |
+| is_pet_allowed | Boolean | 반려동물 출입 여부 | nullable |
+| pet_policy | String | 반려동물 정책 | nullable |
+| has_equipment_rental | Boolean | 캠핑장비 대여 여부 | nullable |
+| themes | String[] | 테마환경 | nullable |
+| fire_pit_type | String | 화로대 타입 | nullable |
+| amenities | String[] | 부대시설 | nullable |
+| nearby_facilities | String[] | 주변 이용 가능 시설 | nullable |
+| camp_sight_type | String | 바닥 타입 (파쇄석/흙/잔디/데크 등) | nullable |
+| created_at | DateTime | 생성일시 | |
+| updated_at | DateTime | 수정일시 | |
+
+## spot_business_info
+
+| 필드명 | 타입 | 설명 | 비고 |
+|---|---|---|---|
+| uid | UUID | 고유 식별자 | PK |
+| spot_uid | UUID | 연결된 spots.uid | FK, indexed |
+| business_reg_no | String | 사업자번호 | nullable |
+| tourism_business_reg_no | String | 관광사업자번호 | nullable |
+| business_type | String | 사업주체 | nullable |
+| operation_type | String | 운영주체 | nullable |
+| operating_agency | String | 운영기관 | nullable |
+| operating_status | String | 운영상태 | nullable, indexed |
+| national_park_no | Integer | 국립공원관리번호 | nullable |
+| national_park_office_code | String | 공원사무소코드 | nullable |
+| national_park_serial_no | String | 일련번호 | nullable |
+| national_park_category_code | String | 분류코드 | nullable |
+| licensed_at | Date | 인허가일자 | nullable |
+| created_at | DateTime | 생성일시 | |
+| updated_at | DateTime | 수정일시 | |
