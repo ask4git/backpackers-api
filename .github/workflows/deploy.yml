@@ -73,8 +73,6 @@ jobs:
           DB_NAME: ${{ vars.DB_NAME }}
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          GOOGLE_REDIRECT_URI: ${{ vars.GOOGLE_REDIRECT_URI }}
           CORS_ORIGINS: ${{ vars.CORS_ORIGINS }}
         run: |
           python3 - <<'EOF'
