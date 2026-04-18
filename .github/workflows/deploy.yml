@@ -63,7 +63,11 @@ jobs:
 
           image_tag = os.environ["IMAGE_TAG"]
           environment = {
-              "DATABASE_URL":                   os.environ["DATABASE_URL"],
+              "DB_HOST":                        os.environ["DB_HOST"],
+              "DB_PORT":                        os.environ["DB_PORT"],
+              "DB_USER":                        os.environ["DB_USER"],
+              "DB_PASSWORD":                    os.environ["DB_PASSWORD"],
+              "DB_NAME":                        os.environ["DB_NAME"],
               "SECRET_KEY":                     os.environ["SECRET_KEY"],
               "ALGORITHM":                      "HS256",
               "ACCESS_TOKEN_EXPIRE_MINUTES":    "1440",
@@ -71,7 +75,7 @@ jobs:
               "GOOGLE_CLIENT_SECRET":           os.environ["GOOGLE_CLIENT_SECRET"],
               "GOOGLE_REDIRECT_URI":            os.environ["GOOGLE_REDIRECT_URI"],
               "CORS_ORIGINS":                   os.environ["CORS_ORIGINS"],
-              "ENVIRONMENT":                    "production",
+              "ENVIRONMENT":                    "prod",
           }
           config = {
               "backpackers-api": {
@@ -85,12 +89,16 @@ jobs:
           print("containers.json created")
           EOF
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ vars.DB_PORT }}
+          DB_USER: ${{ vars.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ vars.DB_NAME }}
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          GOOGLE_REDIRECT_URI: ${{ secrets.GOOGLE_REDIRECT_URI }}
-          CORS_ORIGINS: ${{ secrets.CORS_ORIGINS }}
+          GOOGLE_REDIRECT_URI: ${{ vars.GOOGLE_REDIRECT_URI }}
+          CORS_ORIGINS: ${{ vars.CORS_ORIGINS }}
 
       - name: Deploy to Lightsail
         run: |

@@ -24,11 +24,12 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - .env
+      - .env.local
     environment:
       # docker-compose 로컬 실행 시 DB 호스트를 컨테이너 이름으로 오버라이드
-      DATABASE_URL: postgresql+asyncpg://postgres:password@db:5432/backpackers
-      ENVIRONMENT: development
+      ENV_FILE: .env.local
+      DB_HOST: db
+      DB_PORT: 5432
     depends_on:
       db:
         condition: service_healthy

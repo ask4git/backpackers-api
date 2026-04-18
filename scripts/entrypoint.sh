@@ -11,14 +11,16 @@ import asyncpg
 import os
 import sys
 
-DATABASE_URL = os.environ["DATABASE_URL"]
-# asyncpg용 URL에서 드라이버 prefix 제거
-url = DATABASE_URL.replace("postgresql+asyncpg://", "")
-
 async def wait_for_db(retries=10, delay=3):
     for attempt in range(1, retries + 1):
         try:
-            conn = await asyncpg.connect(f"postgresql://{url}")
+            conn = await asyncpg.connect(
+                host=os.environ["DB_HOST"],
+                port=int(os.environ.get("DB_PORT", "5432")),
+                user=os.environ["DB_USER"],
+                password=os.environ["DB_PASSWORD"],
+                database=os.environ["DB_NAME"],
+            )
             await conn.close()
             print(f"  DB connected (attempt {attempt})")
             return

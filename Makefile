@@ -2,8 +2,11 @@
 # Backpackers API - Makefile
 # =============================================================================
 
-.PHONY: help dev up down logs shell migrate migrate-down migrate-create \
-        migrate-history migrate-current lint lint-fix format test \
+.PHONY: help dev dev-prod up down logs shell \
+        tunnel tunnel-close \
+        migrate migrate-down migrate-create migrate-history migrate-current \
+        migrate-prod \
+        lint lint-fix format test \
         build push deploy status ls-logs images secret-gen
 
 SERVICE_NAME  := backpackers-api
@@ -17,8 +20,34 @@ help:           ## 사용 가능한 명령어 목록 출력
 
 # ── 로컬 개발 ─────────────────────────────────────────────────────────────────
 
-dev:            ## 로컬에서 uvicorn 직접 실행 (hot reload)
-	uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+BASTION_IP     := 43.202.61.119
+BASTION_KEY    ?= ~/.ssh/backpackers-bastion
+
+dev:            ## 로컬에서 uvicorn 직접 실행 (hot reload, .env.local)
+	@test -f .env.local || (echo "Error: .env.local 없음. .env.local.example 참고" && exit 1)
+	ENV_FILE=.env.local uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+dev-devel:      ## devel 환경으로 로컬 서버 실행 (.env.devel)
+	@test -f .env.devel || (echo "Error: .env.devel 없음" && exit 1)
+	ENV_FILE=.env.devel uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+dev-prod:       ## prod DB에 연결해서 로컬 서버 실행 (.env.prod, make tunnel 먼저 실행)
+	@test -f .env.prod || (echo "Error: .env.prod 없음. .env.prod.example 참고" && exit 1)
+	ENV_FILE=.env.prod uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+# ── SSH 터널 (prod DB) ────────────────────────────────────────────────────────
+
+tunnel:         ## SSH 터널 열기 (백그라운드, prod DB → localhost)
+	@test -f .env.prod || (echo "Error: .env.prod 없음. .env.prod.example 참고" && exit 1)
+	$(eval PROD_DB_HOST := $(shell grep '^DB_HOST=' .env.prod | cut -d= -f2 | tr -d '[:space:]'))
+	$(eval PROD_DB_PORT := $(shell grep '^DB_PORT=' .env.prod | cut -d= -f2 | tr -d '[:space:]'))
+	@test -n "$(PROD_DB_HOST)" || (echo "Error: .env.prod에 DB_HOST가 없습니다." && exit 1)
+	@echo "터널 열기: localhost:$(PROD_DB_PORT) → $(PROD_DB_HOST):$(PROD_DB_PORT)"
+	ssh -i $(BASTION_KEY) -L $(PROD_DB_PORT):$(PROD_DB_HOST):$(PROD_DB_PORT) ubuntu@$(BASTION_IP) -N -f
+	@echo "터널 열림. 종료: make tunnel-close"
+
+tunnel-close:   ## SSH 터널 종료
+	@pkill -f "ssh.*5432" && echo "터널 종료됨" || echo "실행 중인 터널 없음"
 
 up:             ## docker-compose로 DB + API 실행 (마이그레이션 포함)
 	docker compose up -d
@@ -36,8 +65,9 @@ shell:          ## 실행 중인 API 컨테이너에 bash 접속
 
 # ── DB 마이그레이션 ───────────────────────────────────────────────────────────
 
-migrate:        ## alembic upgrade head 실행 (로컬 DB 대상)
-	uv run alembic upgrade head
+migrate:        ## alembic upgrade head 실행 (.env.local 기준)
+	@test -f .env.local || (echo "Error: .env.local 없음. .env.local.example 참고" && exit 1)
+	ENV_FILE=.env.local uv run alembic upgrade head
 
 migrate-down:   ## alembic downgrade -1 (한 단계 롤백)
 	uv run alembic downgrade -1
@@ -51,6 +81,14 @@ migrate-history: ## 마이그레이션 히스토리 조회
 
 migrate-current: ## 현재 적용된 마이그레이션 버전 확인
 	uv run alembic current
+
+migrate-devel:  ## devel DB에 alembic upgrade head 실행
+	@test -f .env.devel || (echo "Error: .env.devel 없음" && exit 1)
+	ENV_FILE=.env.devel uv run alembic upgrade head
+
+migrate-prod:   ## prod DB에 alembic upgrade head 실행 (make tunnel 먼저 실행)
+	@test -f .env.prod || (echo "Error: .env.prod 없음. .env.prod.example 참고" && exit 1)
+	ENV_FILE=.env.prod uv run alembic upgrade head
 
 # ── 코드 품질 ─────────────────────────────────────────────────────────────────
 

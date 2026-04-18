@@ -11,7 +11,11 @@ from dotenv import dotenv_values
 
 
 DEPLOY_KEYS = [
-    "DATABASE_URL",
+    "DB_HOST",
+    "DB_PORT",
+    "DB_USER",
+    "DB_PASSWORD",
+    "DB_NAME",
     "SECRET_KEY",
     "ALGORITHM",
     "ACCESS_TOKEN_EXPIRE_MINUTES",

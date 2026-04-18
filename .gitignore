@@ -5,6 +5,9 @@
 .env
 .env.*
 !.env.example
+!.env.local.example
+!.env.devel.example
+!.env.prod.example
 
 # ---------------------------------------------------------------------------
 # Python
