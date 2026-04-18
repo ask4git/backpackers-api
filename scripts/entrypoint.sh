@@ -5,7 +5,7 @@ echo "=== Backpackers API Startup ==="
 
 # DB 연결 대기
 echo "[1/3] Waiting for database connection..."
-python - <<'PYEOF'
+uv run python - <<'PYEOF'
 import asyncio
 import asyncpg
 import os
