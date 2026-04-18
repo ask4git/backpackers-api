@@ -37,9 +37,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24시간
 
     # ── Google OAuth ──────────────────────────────────────────────────────────
+    # ID Token 검증에는 CLIENT_ID만 필요 (프론트엔드가 Google과 직접 인증)
     GOOGLE_CLIENT_ID: str = ""
-    GOOGLE_CLIENT_SECRET: str = ""
-    GOOGLE_REDIRECT_URI: str = "http://localhost:8000/auth/google/callback"
 
     # ── CORS ──────────────────────────────────────────────────────────────────
     # 쉼표 구분 문자열로 주입받아 리스트로 변환

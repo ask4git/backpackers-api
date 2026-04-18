@@ -1,6 +1,6 @@
 # Backpackers API Reference
 
-**Base URL:** `https://backpackers-api.8x8077g16h76j.ap-northeast-2.cs.amazonlightsail.com`
+**Base URL:** `https://<lightsail-domain>`
 
 ---
 
@@ -22,7 +22,7 @@ Authorization: Bearer <access_token>
 
 **응답**
 ```json
-{ "status": "ok" }
+{ "status": "ok", "environment": "prod" }
 ```
 
 ---
@@ -72,20 +72,25 @@ Authorization: Bearer <access_token>
 
 ---
 
-### GET /auth/google
-Google 소셜 로그인 시작. Google 로그인 페이지로 리다이렉트.
+### POST /auth/google/verify
+Google 소셜 로그인. 프론트엔드가 Google SDK로 획득한 ID Token을 전달하면 백엔드에서 검증 후 앱 토큰 발급.
 
----
+**Flow**
+1. 프론트엔드가 Google Sign-In SDK로 로그인 → Google ID Token 획득
+2. 해당 ID Token을 이 엔드포인트에 전달
+3. 백엔드 검증 후 `access_token` 반환
 
-### GET /auth/google/callback
-Google OAuth 콜백. Google 인증 완료 후 자동 호출됨.
-
-**Query Params**
-| 파라미터 | 타입 | 설명 |
-|----------|------|------|
-| `code` | string | Google 인증 코드 |
+**Request Body**
+```json
+{
+  "id_token": "<Google ID Token>"
+}
+```
 
 **Response** `200` — 회원가입과 동일 (신규 유저면 자동 생성)
+
+**에러**
+- `400` — 유효하지 않은 Google 토큰 또는 이메일 없음
 
 ---
 
