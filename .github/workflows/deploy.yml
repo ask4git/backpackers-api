@@ -49,9 +49,13 @@ jobs:
             --region ${{ env.REGION }} \
             --service-name ${{ env.SERVICE_NAME }} \
             --label ${{ env.SERVICE_NAME }} \
-            --image ${{ env.SERVICE_NAME }}:${{ github.sha }} 2>&1)
+            --image ${{ env.SERVICE_NAME }}:${{ github.sha }} 2>&1) || true
           echo "$PUSH_OUTPUT"
           IMAGE_TAG=$(echo "$PUSH_OUTPUT" | grep -oP '(?<=Refer to this image as ").*(?=")')
+          if [ -z "$IMAGE_TAG" ]; then
+            echo "ERROR: Failed to extract image tag. Push may have failed."
+            exit 1
+          fi
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Create deployment config
