@@ -1,7 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from sqladmin import Admin
+from sqladmin.authentication import AuthenticationBackend
 
+from app.admin import SpotAdmin, SpotBusinessInfoAdmin, SpotReviewAdmin, UserAdmin
 from app.core.config import settings
+from app.core.database import engine
 from app.routers import auth, reviews
 
 app = FastAPI(
@@ -22,6 +26,35 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(reviews.router)
+
+
+# ── 어드민 패널 ───────────────────────────────────────────────────────────────
+
+
+class AdminAuth(AuthenticationBackend):
+    async def authenticate(self, request: Request) -> bool:
+        if not settings.ADMIN_PASSWORD:
+            return False
+        form = await request.form()
+        return (
+            form.get("username") == settings.ADMIN_USERNAME
+            and form.get("password") == settings.ADMIN_PASSWORD
+        )
+
+    async def logout(self, request: Request) -> bool:
+        return True
+
+
+admin = Admin(
+    app,
+    engine,
+    authentication_backend=AdminAuth(secret_key=settings.SECRET_KEY),
+    title="Backpackers 어드민",
+)
+admin.add_view(SpotAdmin)
+admin.add_view(SpotBusinessInfoAdmin)
+admin.add_view(SpotReviewAdmin)
+admin.add_view(UserAdmin)
 
 
 @app.get("/health", tags=["health"])
