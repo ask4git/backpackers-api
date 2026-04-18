@@ -10,13 +10,21 @@ from app.core.security import decode_token
 from app.crud.user import get_user_by_id
 from app.models.user import User
 
-bearer_scheme = HTTPBearer()
+bearer_scheme = HTTPBearer(auto_error=False)
+
+_UNAUTHORIZED = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="유효하지 않은 인증 정보입니다.",
+    headers={"WWW-Authenticate": "Bearer"},
+)
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: AsyncSession = Depends(get_db),
 ) -> User:
+    if credentials is None:
+        raise _UNAUTHORIZED
     try:
         payload = decode_token(credentials.credentials)
         user_id: str | None = payload.get("sub")
@@ -24,13 +32,12 @@ async def get_current_user(
             raise ValueError
         user_uuid = UUID(user_id)
     except (JWTError, ValueError):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="유효하지 않은 인증 정보입니다.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise _UNAUTHORIZED
 
     user = await get_user_by_id(db, user_uuid)
     if user is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="사용자를 찾을 수 없습니다.")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="사용자를 찾을 수 없습니다.",
+        )
     return user
