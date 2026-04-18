@@ -35,6 +35,8 @@ class Spot(Base):
     amenities = Column(ARRAY(String), nullable=True)      # 부대시설
     nearby_facilities = Column(ARRAY(String), nullable=True)  # 주변 이용 가능 시설
     camp_sight_type = Column(String, nullable=True)       # 바닥 타입 (파쇄석/흙/잔디/데크 등)
+    rating_avg = Column(Float, nullable=False, default=0.0)   # 평균 별점 (리뷰 생성 시 갱신)
+    review_count = Column(Integer, nullable=False, default=0) # 리뷰 수 (리뷰 생성 시 갱신)
 
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(

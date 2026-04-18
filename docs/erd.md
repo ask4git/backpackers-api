@@ -37,8 +37,10 @@ erDiagram
         Array    amenities           "부대시설"
         Array    nearby_facilities   "주변 이용 가능 시설"
         String   camp_sight_type     "바닥 타입"
-        DateTime created_at          "생성일시"
-        DateTime updated_at          "수정일시"
+        Float    rating_avg           "평균 별점 캐시 (리뷰 생성 시 갱신)"
+        Integer  review_count         "리뷰 수 캐시 (리뷰 생성 시 갱신)"
+        DateTime created_at           "생성일시"
+        DateTime updated_at           "수정일시"
     }
 
     spot_business_info {
@@ -59,7 +61,19 @@ erDiagram
         DateTime updated_at                    "수정일시"
     }
 
+    spot_reviews {
+        UUID     uid         PK "고유 식별자"
+        UUID     spot_uid    FK "spots.uid (indexed)"
+        UUID     user_id     FK "users.id (indexed)"
+        Float    rating          "별점 (0~5)"
+        String   content         "리뷰 내용"
+        DateTime created_at      "생성일시"
+        DateTime updated_at      "수정일시"
+    }
+
     spots ||--|| spot_business_info : "business_info"
+    spots ||--o{ spot_reviews : "reviews"
+    users ||--o{ spot_reviews : "written_by"
 ```
 
 ---
@@ -102,6 +116,8 @@ erDiagram
 | amenities | String[] | 부대시설 | nullable |
 | nearby_facilities | String[] | 주변 이용 가능 시설 | nullable |
 | camp_sight_type | String | 바닥 타입 (파쇄석/흙/잔디/데크 등) | nullable |
+| rating_avg | Float | 평균 별점 캐시 | 리뷰 생성 시 자동 갱신 |
+| review_count | Integer | 리뷰 수 캐시 | 리뷰 생성 시 자동 갱신 |
 | created_at | DateTime | 생성일시 | |
 | updated_at | DateTime | 수정일시 | |
 
@@ -122,5 +138,17 @@ erDiagram
 | national_park_serial_no | String | 일련번호 | nullable |
 | national_park_category_code | String | 분류코드 | nullable |
 | licensed_at | Date | 인허가일자 | nullable |
+| created_at | DateTime | 생성일시 | |
+| updated_at | DateTime | 수정일시 | |
+
+## spot_reviews
+
+| 필드명 | 타입 | 설명 | 비고 |
+|---|---|---|---|
+| uid | UUID | 고유 식별자 | PK |
+| spot_uid | UUID | 연결된 spots.uid | FK, indexed |
+| user_id | UUID | 작성자 users.id | FK, indexed |
+| rating | Float | 별점 (0~5) | CHECK 0≤rating≤5 |
+| content | String | 리뷰 내용 | nullable |
 | created_at | DateTime | 생성일시 | |
 | updated_at | DateTime | 수정일시 | |
