@@ -1,0 +1,131 @@
+name: Deploy to Lightsail
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  SERVICE_NAME: backpackers-api
+  REGION: ap-northeast-2
+  IMAGE_LABEL: backpackers-api
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.REGION }}
+
+      - name: Install lightsailctl
+        run: |
+          curl -sLo /tmp/lightsailctl \
+            "https://s3.us-west-2.amazonaws.com/lightsailctl/latest/linux-amd64/lightsailctl"
+          sudo mv /tmp/lightsailctl /usr/local/bin/lightsailctl
+          sudo chmod +x /usr/local/bin/lightsailctl
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image (linux/amd64)
+        run: |
+          docker build \
+            --platform linux/amd64 \
+            -t ${{ env.IMAGE_LABEL }}:${{ github.sha }} \
+            .
+
+      - name: Push image to Lightsail
+        id: push
+        run: |
+          PUSH_OUTPUT=$(aws lightsail push-container-image \
+            --region ${{ env.REGION }} \
+            --service-name ${{ env.SERVICE_NAME }} \
+            --label ${{ env.IMAGE_LABEL }} \
+            --image ${{ env.IMAGE_LABEL }}:${{ github.sha }} 2>&1)
+          echo "$PUSH_OUTPUT"
+          IMAGE_TAG=$(echo "$PUSH_OUTPUT" | grep -oP '(?<=Refer to this image as ").*(?=")')
+          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Create deployment config
+        env:
+          IMAGE_TAG: ${{ steps.push.outputs.image_tag }}
+        run: |
+          python3 - <<'EOF'
+          import json, os
+
+          image_tag = os.environ["IMAGE_TAG"]
+          environment = {
+              "DATABASE_URL":                   os.environ["DATABASE_URL"],
+              "SECRET_KEY":                     os.environ["SECRET_KEY"],
+              "ALGORITHM":                      "HS256",
+              "ACCESS_TOKEN_EXPIRE_MINUTES":    "1440",
+              "GOOGLE_CLIENT_ID":               os.environ["GOOGLE_CLIENT_ID"],
+              "GOOGLE_CLIENT_SECRET":           os.environ["GOOGLE_CLIENT_SECRET"],
+              "GOOGLE_REDIRECT_URI":            os.environ["GOOGLE_REDIRECT_URI"],
+              "CORS_ORIGINS":                   os.environ["CORS_ORIGINS"],
+              "ENVIRONMENT":                    "production",
+          }
+          config = {
+              "backpackers-api": {
+                  "image": image_tag,
+                  "ports": {"8000": "HTTP"},
+                  "environment": environment,
+              }
+          }
+          with open("/tmp/containers.json", "w") as f:
+              json.dump(config, f)
+          print("containers.json created")
+          EOF
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REDIRECT_URI: ${{ secrets.GOOGLE_REDIRECT_URI }}
+          CORS_ORIGINS: ${{ secrets.CORS_ORIGINS }}
+
+      - name: Deploy to Lightsail
+        run: |
+          aws lightsail create-container-service-deployment \
+            --region ${{ env.REGION }} \
+            --service-name ${{ env.SERVICE_NAME }} \
+            --containers file:///tmp/containers.json \
+            --public-endpoint '{
+              "containerName": "backpackers-api",
+              "containerPort": 8000,
+              "healthCheck": {
+                "path": "/health",
+                "intervalSeconds": 10,
+                "timeoutSeconds": 5,
+                "successCodes": "200",
+                "unhealthyThreshold": 2,
+                "healthyThreshold": 2
+              }
+            }'
+
+      - name: Wait for deployment
+        run: |
+          echo "Waiting for deployment to complete (max 10 minutes)..."
+          for i in $(seq 1 30); do
+            STATE=$(aws lightsail get-container-services \
+              --region ${{ env.REGION }} \
+              --service-name ${{ env.SERVICE_NAME }} \
+              --query 'containerServices[0].state' \
+              --output text)
+            echo "Attempt $i/30: State = $STATE"
+            if [ "$STATE" = "RUNNING" ]; then
+              echo "Deployment successful!"
+              exit 0
+            fi
+            sleep 20
+          done
+          echo "Deployment timed out"
+          exit 1
