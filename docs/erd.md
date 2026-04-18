@@ -13,39 +13,6 @@ erDiagram
         DateTime updated_at
     }
 
-    camping_spots {
-        UUID    id           PK
-        String  name         "indexed"
-        String  description
-        Float   lat
-        Float   lng
-        String  address
-        String  region       "indexed"
-        Array   amenities
-        Array   tags
-        Array   images
-        String  source       "public_data | user_report"
-        String  status       "verified | pending | rejected, indexed"
-        Float   rating
-        Integer review_count
-        DateTime created_at
-        DateTime updated_at
-    }
-
-    spot_reports {
-        UUID    id               PK
-        String  name
-        String  description
-        Float   lat
-        Float   lng
-        String  address
-        Array   amenities
-        Array   images
-        String  reporter_contact "nullable"
-        String  status           "항상 pending으로 생성"
-        DateTime created_at
-    }
-
     spots {
         UUID    uid              PK
         String  title            "indexed"
@@ -100,7 +67,5 @@ erDiagram
 | 테이블 | 설명 |
 |---|---|
 | `users` | 회원 계정 (이메일/패스워드 인증) |
-| `camping_spots` | 야영장 정보 (공공데이터 + 사용자 제보 통합) |
-| `spot_reports` | 사용자 제보 임시 저장소 (검토 후 camping_spots로 승격) |
 | `spots` | 국립공원 등 공공 raw 데이터 기반 스팟 |
 | `spot_business_info` | spots의 사업자/인허가 정보 (1:1) |
