@@ -12,7 +12,7 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: production
+    environment: mvp-prod
 
     steps:
       - name: Checkout
