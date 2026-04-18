@@ -29,7 +29,6 @@ def main():
     print(f"  DB_PASSWORD  : {'*' * len(settings.DB_PASSWORD)}")
     print(f"  SECRET_KEY   : {settings.SECRET_KEY[:6]}...")
     print(f"  CORS_ORIGINS : {settings.CORS_ORIGINS}")
-    print(f"  GOOGLE_REDIRECT_URI : {settings.GOOGLE_REDIRECT_URI}")
     print("=" * 40)
 
 
