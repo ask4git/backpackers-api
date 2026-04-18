@@ -6,14 +6,8 @@
     "version": "0.1.0"
   },
   "servers": [
-    {
-      "url": "{{base_url}}",
-      "description": "Lightsail (prod)"
-    },
-    {
-      "url": "http://localhost:8000",
-      "description": "Local"
-    }
+    { "url": "{{base_url}}", "description": "Lightsail (prod)" },
+    { "url": "http://localhost:8000", "description": "Local" }
   ],
   "components": {
     "securitySchemes": {
@@ -28,24 +22,24 @@
         "type": "object",
         "required": ["email", "password", "name"],
         "properties": {
-          "email": { "type": "string", "format": "email", "example": "user@example.com" },
-          "password": { "type": "string", "example": "your-password" },
-          "name": { "type": "string", "example": "홍길동" }
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string" },
+          "name": { "type": "string" }
         }
       },
       "UserLogin": {
         "type": "object",
         "required": ["email", "password"],
         "properties": {
-          "email": { "type": "string", "format": "email", "example": "user@example.com" },
-          "password": { "type": "string", "example": "your-password" }
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string" }
         }
       },
       "GoogleVerifyRequest": {
         "type": "object",
         "required": ["id_token"],
         "properties": {
-          "id_token": { "type": "string", "example": "<Google ID Token>" }
+          "id_token": { "type": "string" }
         }
       },
       "UserResponse": {
@@ -65,95 +59,44 @@
           "user": { "$ref": "#/components/schemas/UserResponse" }
         }
       },
-      "LocationSchema": {
+      "ReviewCreate": {
         "type": "object",
+        "required": ["rating"],
         "properties": {
-          "lat": { "type": "number", "example": 38.1195 },
-          "lng": { "type": "number", "example": 128.4656 },
-          "address": { "type": "string", "example": "강원도 속초시 설악산로 1234" },
-          "region": { "type": "string", "example": "강원" }
-        }
-      },
-      "CampingSpotSummary": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "name": { "type": "string" },
-          "location": { "$ref": "#/components/schemas/LocationSchema" },
-          "amenities": { "type": "array", "items": { "type": "string" } },
-          "tags": { "type": "array", "items": { "type": "string" } },
-          "rating": { "type": "number" },
-          "review_count": { "type": "integer" },
-          "status": { "type": "string", "enum": ["verified", "pending", "rejected"] },
-          "thumbnail_image": { "type": "string", "nullable": true }
-        }
-      },
-      "CampingSpotDetail": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "name": { "type": "string" },
-          "description": { "type": "string" },
-          "location": { "$ref": "#/components/schemas/LocationSchema" },
-          "amenities": { "type": "array", "items": { "type": "string" } },
-          "tags": { "type": "array", "items": { "type": "string" } },
-          "images": { "type": "array", "items": { "type": "string" } },
-          "source": { "type": "string", "enum": ["public_data", "user_report"] },
-          "status": { "type": "string", "enum": ["verified", "pending", "rejected"] },
-          "rating": { "type": "number" },
-          "review_count": { "type": "integer" },
-          "created_at": { "type": "string", "format": "date-time" },
-          "updated_at": { "type": "string", "format": "date-time" }
-        }
-      },
-      "PaginatedSpotsResponse": {
-        "type": "object",
-        "properties": {
-          "items": { "type": "array", "items": { "$ref": "#/components/schemas/CampingSpotSummary" } },
-          "total": { "type": "integer" },
-          "page": { "type": "integer" },
-          "limit": { "type": "integer" },
-          "total_pages": { "type": "integer" }
-        }
-      },
-      "SpotReportCreate": {
-        "type": "object",
-        "required": ["name", "description", "lat", "lng", "address"],
-        "properties": {
-          "name": { "type": "string", "example": "비밀 캠핑장" },
-          "description": { "type": "string", "example": "아무도 모르는 숨겨진 캠핑장" },
-          "lat": { "type": "number", "example": 37.5665 },
-          "lng": { "type": "number", "example": 126.9780 },
-          "address": { "type": "string", "example": "서울특별시 중구 ..." },
-          "amenities": {
-            "type": "array",
-            "items": { "type": "string", "enum": ["toilet", "parking", "water", "shower", "fire_pit", "trash"] },
-            "example": ["toilet", "parking"]
+          "rating": {
+            "type": "number",
+            "format": "float",
+            "minimum": 0,
+            "maximum": 5,
+            "description": "별점 (0~5)"
           },
-          "images": { "type": "array", "items": { "type": "string" }, "example": [] },
-          "reporter_contact": { "type": "string", "nullable": true, "example": "010-1234-5678" }
+          "content": {
+            "type": "string",
+            "nullable": true,
+            "description": "리뷰 내용"
+          }
         }
       },
-      "SpotReportResponse": {
+      "ReviewResponse": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "name": { "type": "string" },
-          "description": { "type": "string" },
-          "lat": { "type": "number" },
-          "lng": { "type": "number" },
-          "address": { "type": "string" },
-          "amenities": { "type": "array", "items": { "type": "string" } },
-          "images": { "type": "array", "items": { "type": "string" } },
-          "reporter_contact": { "type": "string", "nullable": true },
-          "status": { "type": "string" },
+          "uid": { "type": "string", "format": "uuid" },
+          "spot_uid": { "type": "string", "format": "uuid" },
+          "user_id": { "type": "string", "format": "uuid" },
+          "rating": { "type": "number", "format": "float" },
+          "content": { "type": "string", "nullable": true },
           "created_at": { "type": "string", "format": "date-time" }
         }
       },
-      "ErrorResponse": {
+      "ReviewListResponse": {
         "type": "object",
         "properties": {
-          "detail": { "type": "string" }
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReviewResponse" }
+          },
+          "total": { "type": "integer" },
+          "rating_avg": { "type": "number", "format": "float" }
         }
       }
     }
@@ -161,19 +104,19 @@
   "paths": {
     "/health": {
       "get": {
-        "tags": ["Health"],
-        "summary": "서버 상태 확인",
+        "tags": ["health"],
+        "summary": "헬스 체크",
         "operationId": "health",
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "서버 상태 정상",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
                     "status": { "type": "string", "example": "ok" },
-                    "environment": { "type": "string", "example": "prod" }
+                    "environment": { "type": "string", "example": "local" }
                   }
                 }
               }
@@ -184,8 +127,8 @@
     },
     "/auth/register": {
       "post": {
-        "tags": ["Auth"],
-        "summary": "이메일 회원가입",
+        "tags": ["auth"],
+        "summary": "회원가입",
         "operationId": "register",
         "requestBody": {
           "required": true,
@@ -197,7 +140,7 @@
         },
         "responses": {
           "201": {
-            "description": "회원가입 성공",
+            "description": "회원가입 성공 — JWT 토큰 반환",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/TokenResponse" }
@@ -205,20 +148,15 @@
             }
           },
           "400": {
-            "description": "이미 사용 중인 이메일",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
+            "description": "이미 사용중인 이메일"
           }
         }
       }
     },
     "/auth/login": {
       "post": {
-        "tags": ["Auth"],
-        "summary": "이메일 로그인",
+        "tags": ["auth"],
+        "summary": "이메일/패스워드 로그인",
         "operationId": "login",
         "requestBody": {
           "required": true,
@@ -230,7 +168,7 @@
         },
         "responses": {
           "200": {
-            "description": "로그인 성공",
+            "description": "로그인 성공 — JWT 토큰 반환",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/TokenResponse" }
@@ -238,21 +176,16 @@
             }
           },
           "401": {
-            "description": "이메일 또는 비밀번호 불일치",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
+            "description": "이메일 또는 비밀번호가 올바르지 않음"
           }
         }
       }
     },
     "/auth/google/verify": {
       "post": {
-        "tags": ["Auth"],
-        "summary": "Google 소셜 로그인",
-        "description": "프론트엔드가 Google Sign-In SDK로 획득한 ID Token을 전달하면 백엔드에서 검증 후 앱 토큰 발급. 신규 사용자는 자동 가입.",
+        "tags": ["auth"],
+        "summary": "Google ID Token 검증 및 로그인",
+        "description": "프론트엔드가 Google로부터 받은 ID Token을 서버에서 검증 후 JWT 발급. 신규 사용자면 자동 가입.",
         "operationId": "googleVerify",
         "requestBody": {
           "required": true,
@@ -264,7 +197,7 @@
         },
         "responses": {
           "200": {
-            "description": "인증 성공",
+            "description": "Google 인증 성공 — JWT 토큰 반환",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/TokenResponse" }
@@ -272,138 +205,83 @@
             }
           },
           "400": {
-            "description": "유효하지 않은 Google 토큰",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
+            "description": "유효하지 않은 Google 토큰 또는 이메일 없음"
           }
         }
       }
     },
-    "/spots": {
-      "get": {
-        "tags": ["Spots"],
-        "summary": "캠핑장 목록 조회",
-        "operationId": "listSpots",
+    "/spots/{spot_uid}/reviews": {
+      "post": {
+        "tags": ["reviews"],
+        "summary": "리뷰 작성",
+        "description": "스팟에 별점(0~5)과 리뷰를 작성. 유저당 스팟 1개 리뷰만 허용.",
+        "operationId": "writeReview",
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
-            "name": "q",
-            "in": "query",
-            "description": "이름·설명·태그 검색",
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "region",
-            "in": "query",
-            "description": "지역 필터",
-            "schema": {
-              "type": "string",
-              "enum": ["서울", "경기", "강원", "충북", "충남", "전북", "전남", "경북", "경남", "제주"]
-            }
-          },
-          {
-            "name": "amenities",
-            "in": "query",
-            "description": "편의시설 필터 (복수 선택 가능)",
-            "style": "form",
-            "explode": true,
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "enum": ["toilet", "parking", "water", "shower", "fire_pit", "trash"]
-              }
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "description": "페이지 번호 (1부터)",
-            "schema": { "type": "integer", "default": 1, "minimum": 1 }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "페이지당 항목 수 (최대 100)",
-            "schema": { "type": "integer", "default": 20, "minimum": 1, "maximum": 100 }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "조회 성공",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/PaginatedSpotsResponse" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/spots/{spot_id}": {
-      "get": {
-        "tags": ["Spots"],
-        "summary": "캠핑장 상세 조회",
-        "operationId": "getSpot",
-        "parameters": [
-          {
-            "name": "spot_id",
+            "name": "spot_uid",
             "in": "path",
             "required": true,
-            "description": "캠핑장 UUID",
             "schema": { "type": "string", "format": "uuid" }
           }
         ],
-        "responses": {
-          "200": {
-            "description": "조회 성공",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/CampingSpotDetail" }
-              }
-            }
-          },
-          "404": {
-            "description": "캠핑장을 찾을 수 없습니다",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/spots/report": {
-      "post": {
-        "tags": ["Spots"],
-        "summary": "캠핑장 제보",
-        "operationId": "reportSpot",
-        "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/SpotReportCreate" }
+              "schema": { "$ref": "#/components/schemas/ReviewCreate" }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "제보 접수 완료",
+            "description": "리뷰 작성 성공",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/SpotReportResponse" }
+                "schema": { "$ref": "#/components/schemas/ReviewResponse" }
               }
             }
           },
           "401": {
-            "description": "인증 필요",
+            "description": "인증 필요"
+          },
+          "404": {
+            "description": "존재하지 않는 스팟"
+          },
+          "409": {
+            "description": "이미 이 스팟에 리뷰를 작성함"
+          }
+        }
+      },
+      "get": {
+        "tags": ["reviews"],
+        "summary": "리뷰 목록 조회",
+        "description": "특정 스팟의 리뷰 목록과 평균 별점을 반환.",
+        "operationId": "listReviews",
+        "parameters": [
+          {
+            "name": "spot_uid",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 1, "default": 1 }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "리뷰 목록 및 평균 별점",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": { "$ref": "#/components/schemas/ReviewListResponse" }
               }
             }
           }
