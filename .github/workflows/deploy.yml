@@ -74,6 +74,8 @@ jobs:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
           CORS_ORIGINS: ${{ vars.CORS_ORIGINS }}
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         run: |
           python3 - <<'EOF'
           import json, os
@@ -89,6 +91,8 @@ jobs:
               "GOOGLE_CLIENT_ID":     os.environ["GOOGLE_CLIENT_ID"],
               "CORS_ORIGINS":         os.environ["CORS_ORIGINS"],
               "ENVIRONMENT":          "prod",
+              "ADMIN_USERNAME":       os.environ["ADMIN_USERNAME"],
+              "ADMIN_PASSWORD":       os.environ["ADMIN_PASSWORD"],
           }
           config = {
               os.environ["SERVICE_NAME"]: {
