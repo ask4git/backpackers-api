@@ -36,6 +36,10 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24시간
 
+    # ── 어드민 ────────────────────────────────────────────────────────────────
+    ADMIN_USERNAME: str = "admin"
+    ADMIN_PASSWORD: str = ""  # 빈 값이면 /admin 접근 불가 처리
+
     # ── Google OAuth ──────────────────────────────────────────────────────────
     # ID Token 검증에는 CLIENT_ID만 필요 (프론트엔드가 Google과 직접 인증)
     GOOGLE_CLIENT_ID: str = ""
