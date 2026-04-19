@@ -5,7 +5,7 @@ from sqladmin.authentication import AuthenticationBackend
 
 from app.admin import SpotAdmin, SpotBusinessInfoAdmin, SpotReviewAdmin, UserAdmin
 from app.core.config import settings
-from app.core.database import engine
+from app.core.database import engine, AsyncSessionLocal
 from app.routers import auth, reviews
 
 app = FastAPI(
@@ -32,22 +32,30 @@ app.include_router(reviews.router)
 
 
 class AdminAuth(AuthenticationBackend):
-    async def authenticate(self, request: Request) -> bool:
+    async def login(self, request: Request) -> bool:
         if not settings.ADMIN_PASSWORD:
             return False
         form = await request.form()
-        return (
+        if (
             form.get("username") == settings.ADMIN_USERNAME
             and form.get("password") == settings.ADMIN_PASSWORD
-        )
+        ):
+            request.session.update({"admin": "authenticated"})
+            return True
+        return False
 
     async def logout(self, request: Request) -> bool:
+        request.session.clear()
         return True
+
+    async def authenticate(self, request: Request) -> bool:
+        return request.session.get("admin") == "authenticated"
 
 
 admin = Admin(
     app,
     engine,
+    session_maker=AsyncSessionLocal,
     authentication_backend=AdminAuth(secret_key=settings.SECRET_KEY),
     title="Backpackers 어드민",
 )
