@@ -155,6 +155,72 @@
         "properties": {
           "detail": { "type": "string" }
         }
+      },
+      "SpotSummary": {
+        "type": "object",
+        "properties": {
+          "uid": { "type": "string", "format": "uuid" },
+          "title": { "type": "string", "example": "설악산 오토캠핑장" },
+          "address": { "type": "string", "nullable": true, "example": "강원특별자치도 속초시 설악산로 1234" },
+          "region_province": { "type": "string", "nullable": true, "example": "강원특별자치도" },
+          "region_city": { "type": "string", "nullable": true, "example": "속초시" },
+          "latitude": { "type": "number", "nullable": true, "example": 38.1195 },
+          "longitude": { "type": "number", "nullable": true, "example": 128.4656 },
+          "category": { "type": "array", "nullable": true, "items": { "type": "string" }, "example": ["일반야영장"] },
+          "amenities": { "type": "array", "nullable": true, "items": { "type": "string" }, "example": ["주차장", "화장실", "샤워장"] },
+          "themes": { "type": "array", "nullable": true, "items": { "type": "string" }, "example": ["숲속", "계곡"] },
+          "is_pet_allowed": { "type": "boolean", "nullable": true },
+          "is_fee_required": { "type": "boolean", "nullable": true },
+          "rating_avg": { "type": "number", "example": 4.5 },
+          "review_count": { "type": "integer", "example": 12 }
+        }
+      },
+      "SpotDetail": {
+        "allOf": [
+          { "$ref": "#/components/schemas/SpotSummary" },
+          {
+            "type": "object",
+            "properties": {
+              "description": { "type": "string", "nullable": true },
+              "tagline": { "type": "string", "nullable": true },
+              "features": { "type": "string", "nullable": true },
+              "phone": { "type": "string", "nullable": true },
+              "website_url": { "type": "string", "nullable": true },
+              "booking_url": { "type": "string", "nullable": true },
+              "nearby_facilities": { "type": "array", "nullable": true, "items": { "type": "string" } },
+              "fire_pit_type": { "type": "string", "nullable": true },
+              "camp_sight_type": { "type": "string", "nullable": true },
+              "has_equipment_rental": { "type": "array", "nullable": true, "items": { "type": "string" } },
+              "total_area_m2": { "type": "number", "nullable": true },
+              "unit_count": { "type": "integer", "nullable": true },
+              "created_at": { "type": "string", "format": "date-time" },
+              "updated_at": { "type": "string", "format": "date-time" }
+            }
+          }
+        ]
+      },
+      "SpotSearchResponse": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/SpotSummary" } },
+          "total": { "type": "integer", "example": 150 },
+          "page": { "type": "integer", "example": 1 },
+          "limit": { "type": "integer", "example": 20 },
+          "total_pages": { "type": "integer", "example": 8 }
+        }
+      },
+      "RegionCity": {
+        "type": "object",
+        "properties": {
+          "province": { "type": "string", "example": "강원특별자치도" },
+          "cities": { "type": "array", "items": { "type": "string" }, "example": ["속초시", "강릉시", "춘천시"] }
+        }
+      },
+      "RegionListResponse": {
+        "type": "object",
+        "properties": {
+          "regions": { "type": "array", "items": { "$ref": "#/components/schemas/RegionCity" } }
+        }
       }
     }
   },
@@ -404,6 +470,30 @@
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spots/regions": {
+      "get": {
+        "tags": ["Spots"],
+        "summary": "지역 목록 조회",
+        "description": "지역 필터 드롭다운 구성용. 도(province) → 시/군/구(cities) 계층 구조로 반환. 인증 불필요.",
+        "operationId": "listRegions",
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RegionListResponse" },
+                "example": {
+                  "regions": [
+                    { "province": "강원특별자치도", "cities": ["강릉시", "속초시", "춘천시"] },
+                    { "province": "경기도", "cities": ["가평군", "양평군"] }
+                  ]
+                }
               }
             }
           }

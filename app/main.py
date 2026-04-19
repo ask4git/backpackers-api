@@ -6,7 +6,7 @@ from sqladmin.authentication import AuthenticationBackend
 from app.admin import SpotAdmin, SpotBusinessInfoAdmin, SpotReviewAdmin, UserAdmin
 from app.core.config import settings
 from app.core.database import engine, AsyncSessionLocal
-from app.routers import auth, reviews
+from app.routers import auth, reviews, spots
 
 app = FastAPI(
     title="Backpackers API",
@@ -26,6 +26,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(reviews.router)
+app.include_router(spots.router)
 
 
 # ── 어드민 패널 ───────────────────────────────────────────────────────────────
