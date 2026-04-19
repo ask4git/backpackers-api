@@ -1,5 +1,6 @@
 import os
 from typing import Literal
+from urllib.parse import quote
 
 from pydantic import computed_field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -26,8 +27,9 @@ class Settings(BaseSettings):
     @computed_field
     @property
     def DATABASE_URL(self) -> str:
+        password = quote(self.DB_PASSWORD, safe="")
         return (
-            f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}"
+            f"postgresql+asyncpg://{self.DB_USER}:{password}"
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
         )
 
@@ -72,6 +74,7 @@ class Settings(BaseSettings):
         env_file=_ENV_FILE,
         env_file_encoding="utf-8",
         case_sensitive=True,
+        extra="ignore",
     )
 
 

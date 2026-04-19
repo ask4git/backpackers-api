@@ -20,8 +20,8 @@ help:           ## 사용 가능한 명령어 목록 출력
 
 # ── 로컬 개발 ─────────────────────────────────────────────────────────────────
 
-BASTION_IP     := 43.202.61.119
-BASTION_KEY    ?= ~/.ssh/backpackers-bastion
+BASTION_IP     := 43.203.210.117
+BASTION_KEY    ?= ~/.ssh/backpackers-api-lightsail-bastion-ssh-key.pem
 
 dev:            ## 로컬에서 uvicorn 직접 실행 (hot reload, .env.local)
 	@test -f .env.local || (echo "Error: .env.local 없음. .env.local.example 참고" && exit 1)
@@ -37,17 +37,19 @@ dev-prod:       ## prod DB에 연결해서 로컬 서버 실행 (.env.prod, make
 
 # ── SSH 터널 (prod DB) ────────────────────────────────────────────────────────
 
+PROD_DB_REMOTE_PORT := 5432  # RDS 실제 포트 (고정)
+
 tunnel:         ## SSH 터널 열기 (백그라운드, prod DB → localhost)
 	@test -f .env.prod || (echo "Error: .env.prod 없음. .env.prod.example 참고" && exit 1)
-	$(eval PROD_DB_HOST := $(shell grep '^DB_HOST=' .env.prod | cut -d= -f2 | tr -d '[:space:]'))
+	$(eval RDS_HOST := $(shell grep '^RDS_HOST=' .env.prod | cut -d= -f2 | tr -d '[:space:]'))
 	$(eval PROD_DB_PORT := $(shell grep '^DB_PORT=' .env.prod | cut -d= -f2 | tr -d '[:space:]'))
-	@test -n "$(PROD_DB_HOST)" || (echo "Error: .env.prod에 DB_HOST가 없습니다." && exit 1)
-	@echo "터널 열기: localhost:$(PROD_DB_PORT) → $(PROD_DB_HOST):$(PROD_DB_PORT)"
-	ssh -i $(BASTION_KEY) -L $(PROD_DB_PORT):$(PROD_DB_HOST):$(PROD_DB_PORT) ubuntu@$(BASTION_IP) -N -f
+	@test -n "$(RDS_HOST)" || (echo "Error: .env.prod에 RDS_HOST가 없습니다." && exit 1)
+	@echo "터널 열기: localhost:$(PROD_DB_PORT) → $(RDS_HOST):$(PROD_DB_REMOTE_PORT)"
+	ssh -i $(BASTION_KEY) -L $(PROD_DB_PORT):$(RDS_HOST):$(PROD_DB_REMOTE_PORT) ubuntu@$(BASTION_IP) -N -f
 	@echo "터널 열림. 종료: make tunnel-close"
 
 tunnel-close:   ## SSH 터널 종료
-	@pkill -f "ssh.*5432" && echo "터널 종료됨" || echo "실행 중인 터널 없음"
+	@pkill -f "ssh.*5435" && echo "터널 종료됨" || echo "실행 중인 터널 없음"
 
 up:             ## docker-compose로 DB + API 실행 (마이그레이션 포함)
 	docker compose up -d
@@ -154,8 +156,8 @@ ls-logs:        ## Lightsail 컨테이너 최근 로그 조회 (최근 100줄)
 	  --region $(REGION) \
 	  --service-name $(SERVICE_NAME) \
 	  --container-name $(SERVICE_NAME) \
-	  --query 'logEvents[*].message' \
-	  --output text | tail -100
+	  --output json \
+	| jq -r '.logEvents[] | "\(.createdAt) \(.message)"' | tail -100
 
 images:         ## Lightsail에 등록된 이미지 목록
 	aws lightsail get-container-images \
