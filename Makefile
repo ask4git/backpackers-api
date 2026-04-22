@@ -20,7 +20,6 @@ help:           ## 사용 가능한 명령어 목록 출력
 
 # ── 로컬 개발 ─────────────────────────────────────────────────────────────────
 
-BASTION_IP     := 43.203.210.117
 BASTION_KEY    ?= ~/.ssh/backpackers-api-lightsail-bastion-ssh-key.pem
 
 dev:            ## 로컬에서 uvicorn 직접 실행 (hot reload, .env.local)
@@ -43,7 +42,9 @@ tunnel:         ## SSH 터널 열기 (백그라운드, prod DB → localhost)
 	@test -f .env.prod || (echo "Error: .env.prod 없음. .env.prod.example 참고" && exit 1)
 	$(eval RDS_HOST := $(shell grep '^RDS_HOST=' .env.prod | cut -d= -f2 | tr -d '[:space:]'))
 	$(eval PROD_DB_PORT := $(shell grep '^DB_PORT=' .env.prod | cut -d= -f2 | tr -d '[:space:]'))
+	$(eval BASTION_IP := $(shell grep '^BASTION_IP=' .env.prod | cut -d= -f2 | tr -d '[:space:]'))
 	@test -n "$(RDS_HOST)" || (echo "Error: .env.prod에 RDS_HOST가 없습니다." && exit 1)
+	@test -n "$(BASTION_IP)" || (echo "Error: .env.prod에 BASTION_IP가 없습니다." && exit 1)
 	@echo "터널 열기: localhost:$(PROD_DB_PORT) → $(RDS_HOST):$(PROD_DB_REMOTE_PORT)"
 	ssh -i $(BASTION_KEY) -L $(PROD_DB_PORT):$(RDS_HOST):$(PROD_DB_REMOTE_PORT) ubuntu@$(BASTION_IP) -N -f
 	@echo "터널 열림. 종료: make tunnel-close"
