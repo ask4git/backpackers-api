@@ -9,9 +9,9 @@
         lint lint-fix format test \
         build push deploy status ls-logs images secret-gen
 
-SERVICE_NAME  := backpackers-api
+SERVICE_NAME  := curve-api
 REGION        := ap-northeast-2
-IMAGE_TAG     := backpackers-api:amd64
+IMAGE_TAG     := curve-api:amd64
 PLATFORM      := linux/amd64
 
 help:           ## 사용 가능한 명령어 목록 출력
@@ -125,7 +125,7 @@ push: build     ## Lightsail에 이미지 push (build 포함)
 
 deploy:         ## Lightsail 배포 실행 (LIGHTSAIL_IMAGE 환경변수 필요)
 	@test -n "$(LIGHTSAIL_IMAGE)" || \
-	  (echo "Usage: make deploy LIGHTSAIL_IMAGE=':backpackers-api.backpackers-api.N'" && exit 1)
+	  (echo "Usage: make deploy LIGHTSAIL_IMAGE=':curve-api.curve-api.N'" && exit 1)
 	@test -f .env || (echo "Error: .env 파일이 없습니다." && exit 1)
 	@echo "Deploying $(LIGHTSAIL_IMAGE) to $(SERVICE_NAME)..."
 	@CONTAINERS=$$(uv run python scripts/make_deploy_config.py "$(LIGHTSAIL_IMAGE)") && \

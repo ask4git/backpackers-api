@@ -18,7 +18,7 @@ def main():
     env_file = __import__("os").environ.get("ENV_FILE", ".env.local")
 
     print("=" * 40)
-    print(f"  Backpackers API — 환경 설정 확인")
+    print(f"  Curve API — 환경 설정 확인")
     print("=" * 40)
     print(f"  ENV_FILE     : {env_file}")
     print(f"  ENVIRONMENT  : {settings.ENVIRONMENT}")

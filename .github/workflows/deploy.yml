@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 env:
-  SERVICE_NAME: backpackers-api
+  SERVICE_NAME: curve-api
   REGION: ap-northeast-2
 
 jobs:

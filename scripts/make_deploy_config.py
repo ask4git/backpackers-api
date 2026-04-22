@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 로컬 .env를 읽어 Lightsail 배포용 containers.json 문자열을 출력합니다.
-make deploy LIGHTSAIL_IMAGE=:backpackers-api.backpackers-api.N 에서 호출됩니다.
+make deploy LIGHTSAIL_IMAGE=:curve-api.curve-api.N 에서 호출됩니다.
 """
 import json
 import sys
@@ -43,7 +43,7 @@ def main():
     environment = {k: str(v) for k, v in env.items() if k in DEPLOY_KEYS and v}
 
     config = {
-        "backpackers-api": {
+        "curve-api": {
             "image": image_tag,
             "ports": {"8000": "HTTP"},
             "environment": environment,

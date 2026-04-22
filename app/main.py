@@ -9,7 +9,7 @@ from app.core.database import engine, AsyncSessionLocal
 from app.routers import auth, reviews, spots
 
 app = FastAPI(
-    title="Backpackers API",
+    title="Curve API",
     description="국립공원·캠핑장 정보 플랫폼 API",
     version="0.1.0",
     docs_url=None if settings.is_production else "/docs",
@@ -58,7 +58,7 @@ admin = Admin(
     engine,
     session_maker=AsyncSessionLocal,
     authentication_backend=AdminAuth(secret_key=settings.SECRET_KEY),
-    title="Backpackers 어드민",
+    title="Curve 어드민",
 )
 admin.add_view(SpotAdmin)
 admin.add_view(SpotBusinessInfoAdmin)
